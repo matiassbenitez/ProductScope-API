@@ -7,6 +7,9 @@ const BrandModel = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true
       }
+    }, {
+      tableName: 'brands',
+      timestamps: false
     }
   )
 }

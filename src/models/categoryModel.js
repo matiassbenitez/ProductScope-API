@@ -7,6 +7,9 @@ const CategoryModel = (sequelize, DataTypes) => {
         allowNull: false,
         unique: true
       }
+    }, {
+      tableName: 'categories',
+      timestamps: false
     }
   )
 }

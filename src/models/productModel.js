@@ -30,7 +30,7 @@ const ProductModel = (sequelize, DataTypes) => {
       }
     }, {
       tableName: 'products',
-      timestamps: true
+      timestamps: false
     }
   )
 }

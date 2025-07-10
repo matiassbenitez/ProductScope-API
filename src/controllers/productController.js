@@ -1,0 +1,99 @@
+import productModel from '../models/productModel.js'
+import { Category } from '../models/index.js'
+
+const productController = {
+
+  async createProduct(req, res) {
+    try {
+      const { name, price, brandId, categories } = req.body
+      const newProduct = await productModel.create({
+        name,
+        price,
+        brandId,
+      })
+      if (!Array.isArray(categories) || categories.length === 0) {
+        return res.status(400).json({ error: 'Debes enviar al menos una categoría válida' })
+      }
+      const categoryInstances = await Category.findAll({
+        where: { name: categories }
+      })
+
+      const foundNames = categoryInstances.map(cat => cat.name)
+      const missing = categories.filter(name => !foundNames.includes(name))
+
+      if (missing.length > 0) {
+        return res.status(400).json({
+          error: 'Algunas categorías no existen',
+          missingCategories: missing
+        })
+      }
+
+      await newProduct.addCategories(categoryInstances)
+
+      res.status(201).json(newProduct)
+    } catch (error) {
+      console.error('Error creating product:', error)
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  },
+  async getAllProducts(req, res) {
+    try {
+      const products = await productModel.findAll()
+      res.status(200).json(products)
+    } catch (error) {
+      console.error('Error fetching products:', error)
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  },
+
+  async getProductById(req, res) { //terminar
+    const { id } = req.params
+    try {
+      const product = await productModel.findByPk(id)
+      if (!product) {
+        return res.status(404).json({ error: 'Product not fount' })
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error)
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  },
+
+  async updateProduct(req, res) {
+    const { id } = req.params
+    const { code, name, description, price, available  } = req.body
+    try {
+      const product = await productModel.findByPk(id)
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' })
+      }
+      if (name !== undefined) product.name = name
+      if (code !== undefined) product.code = code
+      if (description !== undefined) product.description = description
+      if (price !== undefined) product.price = price
+      if (available !== undefined) product.available = available
+      await product.save()
+      res.status(200).json(product)
+    } catch (error) {
+      console.error('Error updating product:', error)
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  },
+
+  async deleteProduct(req, res) {
+    const { id } = req.params
+    try {
+      const product = await productModel.findByPk(id)
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' })
+      }
+      await product.destroy()
+      res.status(204).send()
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      res.status(500).json({ error: 'Internal Server Error' })
+    }
+  },
+}
+
+export default productController
