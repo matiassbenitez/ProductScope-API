@@ -2,8 +2,10 @@ import express from 'express'
 import { body, param } from 'express-validator'
 import productController from '../controllers/productController.js'
 import handleErrorValidation from '../middlewares/handleErrorValidation.js'
+import authMiddleware from '../middlewares/authMiddleware.js' 
 
 const router = express.Router()
+router.use(authMiddleware.verifyToken)
 
 router.get('/', productController.getAllProducts)
 router.get('/:id',
@@ -11,7 +13,7 @@ router.get('/:id',
     param('id').isInt().withMessage('Product ID must be an integer'),
     handleErrorValidation
   ], productController.getProductById)
-router.post('/create',
+router.post('/create', authMiddleware.checkRole(['admin']),
   [
     body('name').notEmpty().withMessage('Product name is required'),
     body('price').isDecimal().withMessage('Product price must be a decimal'),
@@ -30,7 +32,7 @@ router.put('/update/:id',
     body('categories.*').isString().withMessage('Each category must be a string'),
     handleErrorValidation
   ], productController.updateProduct)
-router.delete('/delete/:id',
+router.delete('/delete/:id', authMiddleware.checkRole(['admin']),
   [
     param('id').isInt().withMessage('Product ID must be an integer'),
     handleErrorValidation
