@@ -1,44 +1,52 @@
-import productModel from '../models/productModel.js'
-import { Category } from '../models/index.js'
+
+import { Category, Product } from '../models/index.js'
+import { UniqueConstraintError } from 'sequelize'
 
 const productController = {
 
   async createProduct(req, res) {
     try {
-      const { name, price, brandId, categories } = req.body
-      const newProduct = await productModel.create({
+      const { code, name, description, price, available, brandId, categories } = req.body
+      const newProduct = await Product.create({
+        code,
         name,
+        description,
         price,
+        available,
         brandId,
+        categories
       })
       if (!Array.isArray(categories) || categories.length === 0) {
-        return res.status(400).json({ error: 'Debes enviar al menos una categoría válida' })
+        return res.status(400).json({ error: 'Categories must be a non-empty array' })
       }
       const categoryInstances = await Category.findAll({
         where: { name: categories }
       })
-
+      
       const foundNames = categoryInstances.map(cat => cat.name)
       const missing = categories.filter(name => !foundNames.includes(name))
-
+      
       if (missing.length > 0) {
         return res.status(400).json({
-          error: 'Algunas categorías no existen',
+          error: 'Some categories do not exist',
           missingCategories: missing
         })
       }
-
-      await newProduct.addCategories(categoryInstances)
+      
+      await newProduct.setCategories(categoryInstances)
 
       res.status(201).json(newProduct)
     } catch (error) {
+      if (error instanceof UniqueConstraintError) {
+        return res.status(400).json({ error: 'Product code must be unique' })
+      }
       console.error('Error creating product:', error)
       res.status(500).json({ error: 'Internal Server Error' })
     }
   },
   async getAllProducts(req, res) {
     try {
-      const products = await productModel.findAll()
+      const products = await Product.findAll()
       res.status(200).json(products)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -46,13 +54,14 @@ const productController = {
     }
   },
 
-  async getProductById(req, res) { //terminar
+  async getProductById(req, res) {
     const { id } = req.params
     try {
-      const product = await productModel.findByPk(id)
+      const product = await Product.findByPk(id)
       if (!product) {
         return res.status(404).json({ error: 'Product not fount' })
       }
+      res.status(200).json(product)
     } catch (error) {
       console.error('Error fetching product:', error)
       res.status(500).json({ error: 'Internal Server Error' })
@@ -63,7 +72,7 @@ const productController = {
     const { id } = req.params
     const { code, name, description, price, available  } = req.body
     try {
-      const product = await productModel.findByPk(id)
+      const product = await Product.findByPk(id)
       if (!product) {
         return res.status(404).json({ error: 'Product not found' })
       }
@@ -75,6 +84,9 @@ const productController = {
       await product.save()
       res.status(200).json(product)
     } catch (error) {
+      if (error instanceof UniqueConstraintError) {
+        return res.status(400).json({ error: 'Product code must be unique' })
+      }
       console.error('Error updating product:', error)
       res.status(500).json({ error: 'Internal Server Error' })
     }
@@ -83,7 +95,7 @@ const productController = {
   async deleteProduct(req, res) {
     const { id } = req.params
     try {
-      const product = await productModel.findByPk(id)
+      const product = await Product.findByPk(id)
       if (!product) {
         return res.status(404).json({ error: 'Product not found' })
       }

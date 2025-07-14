@@ -2,8 +2,7 @@ import jwt from 'jsonwebtoken'
 
 const authMiddleware = {
     verifyToken: (req, res, next) => {
-    const authHeader = req.headers['Authorization']
-    console.log(req.headers)
+    const authHeader = req.headers['authorization']
     if (!authHeader || !authHeader.startsWith('Bearer')) {
       return res.status(401).json({ error: 'No token provided or invalid format' })
     }
@@ -19,12 +18,12 @@ const authMiddleware = {
     }
   },
 
-    checkRole: (...alowedRoles) => {
+    checkRole: (...allowedRoles) => {
     return (req, res, next) => {
       if (!req.user || !req.user.role) {
         return res.status(403).json({ error: 'Access denied, user role not found' })
       }
-      if (!alowedRoles.includes(req.user.role)) {
+      if (!allowedRoles.includes(req.user.role)) {
         return res.status(403).json({ error: 'Access denied, insufficient permissions' })
       }
       next()

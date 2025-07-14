@@ -1,11 +1,14 @@
 import categoryModel from '../models/categoryModel.js'
+import { DataTypes } from 'sequelize'
+import { sequelize } from '../models/index.js'
 
+const categoryInstance = categoryModel(sequelize, DataTypes)
 const categoryController = {
 
   async createCategory(req, res) {
     try {
       const { name } = req.body
-      const newCategory = await categoryModel.create({ name })
+      const newCategory = await categoryInstance.create({ name })
       res.status(201).json(newCategory)
     } catch (error) {
       console.error('Error creating category:', error)
@@ -15,7 +18,7 @@ const categoryController = {
   
   async getAllCategories(req, res) {
     try {
-      const categories = await categoryModel.findAll()
+      const categories = await categoryInstance.findAll()
       if (categories.length === 0) {
         return res.status(200).json({ message: 'No categories found', data: []})
       }
@@ -29,7 +32,7 @@ const categoryController = {
   async getCategoryById(req, res) {
     const { id } = req.params
     try {
-      const category = await categoryModel.findByPk(id)
+      const category = await categoryInstance.findByPk(id)
       if (!category) {
         return res.status(404).json({ error: 'Category not found' })
       }
@@ -44,7 +47,7 @@ const categoryController = {
     const { id } = req.params
     const { name } = req.body
     try {
-      const category = await categoryModel.findByPk(id)
+      const category = await categoryInstance.findByPk(id)
       if (!category) {
         return res.status(404).json({ error: 'Category not found' })
       }
@@ -60,7 +63,7 @@ const categoryController = {
   async deleteCategory(req, res) {
     const { id } = req.params
     try {
-      const category = await categoryModel.findByPk(id)
+      const category = await categoryInstance.findByPk(id)
       if (!category) {
         return res.status(404).json({ error: 'Category not found' })
       }

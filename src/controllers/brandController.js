@@ -1,11 +1,14 @@
 import BrandModel from "../models/brandModel.js"
+import { DataTypes } from 'sequelize'
+import { sequelize } from '../models/index.js'
 
+const brandInstance = BrandModel(sequelize, DataTypes)
 const BrandController = {
 
   async createBrand(req, res) {
     try {
       const { name } = req.body
-      const newBrand = await BrandModel.create({ name })
+      const newBrand = await brandInstance.create({ name })
       res.status(201).json(newBrand)
     } catch (error) {
       console.error('Error creating brand:', error)
@@ -15,7 +18,7 @@ const BrandController = {
 
   async getAllBrands(req, res) {
     try {
-      const brands = await BrandModel.findAll()
+      const brands = await brandInstance.findAll()
       if (brands.length === 0) {
         return res.status(200).json({ message: 'No brands found', data: []})
       }
@@ -29,7 +32,7 @@ const BrandController = {
   async getBrandById(req, res) {
     const { id } = req.params
     try {
-      const brand = await BrandModel.findByPk(id)
+      const brand = await brandInstance.findByPk(id)
       if (!brand) {
         return res.status(404).json({ error: 'Brand not found' })
       }
@@ -44,7 +47,7 @@ const BrandController = {
     const { id } = req.params
     const { name } = req.body
     try {
-      const brand = await BrandModel.findByPk(id)
+      const brand = await brandInstance.findByPk(id)
       if (!brand) {
         return res.status(404).json({ error: 'Brand not found' })
       }
@@ -60,7 +63,7 @@ const BrandController = {
   async deleteBrand(req, res) {
     const { id } = req.params
     try {
-      const brand = await BrandModel.findByPk(id)
+      const brand = await brandInstance.findByPk(id)
       if (!brand) {
         return res.status(404).json({ error: 'Brand not found' })
       }
