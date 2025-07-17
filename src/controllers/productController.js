@@ -6,9 +6,9 @@ const productController = {
 
   async createProduct(req, res) {
     try {
-      const { code, name, description, price, available, brandId, categories } = req.body
+      const { name, description, price, available, brandId, categories } = req.body
       const newProduct = await Product.create({
-        code,
+        code: `P${Date.now()}`,
         name,
         description,
         price,

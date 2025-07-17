@@ -1,68 +1,169 @@
 # 📦 ProductScope-API
 
-This API allows you to manage products, brands, and categories using CRUD operations. It is built with:
-
-- **Node.js**
-- **Express**
-- **PostgreSQL**
-- **Sequelize**
-- **express-validator**
-- **dotenv**
-- **cors**
-- **pg**
+ProductScope-API is a RESTful and GraphQL API for managing products, brands, and categories. Built with **Node.js**, **Express**, **Sequelize**, and **PostgreSQL**, it supports secure authentication and flexible queries using GraphQL.
 
 ---
 
-## 📁 Endpoints
+## 🚀 Technologies Used
 
-### 🔸 Brands (`/brands`)
-
-| Method | Route              | Description                  | Body Params      |
-|--------|--------------------|------------------------------|------------------|
-| GET    | `/`                | Get all brands               | -                |
-| GET    | `/:id`             | Get a brand by ID            | -                |
-| POST   | `/create`          | Create a new brand           | `name: string`   |
-| PUT    | `/update/:id`      | Update a brand by ID         | `name: string`   |
-| DELETE | `/delete/:id`      | Delete a brand by ID         | -                |
-
----
-
-### 🔸 Categories (`/categories`)
-
-| Method | Route              | Description                  | Body Params      |
-|--------|--------------------|------------------------------|------------------|
-| GET    | `/`                | Get all categories           | -                |
-| GET    | `/:id`             | Get a category by ID         | -                |
-| POST   | `/create`          | Create a new category        | `name: string`   |
-| PUT    | `/update/:id`      | Update a category by ID      | `name: string`   |
-| DELETE | `/delete/:id`      | Delete a category by ID      | -                |
-
-> ⚠️ **Notes**:
-> - The `PUT /update/:id` route should call `categoryController.updateCategory`.
-> - The `DELETE /delete/:id` route should validate `param('id')` instead of `body('name')`.
+- Node.js
+- Express.js
+- PostgreSQL
+- Sequelize ORM
+- Apollo Server (GraphQL)
+- JWT Authentication
+- express-validator
+- dotenv
+- cors
+- pg
 
 ---
 
-### 🔸 Products (`/products`)
+## 📁 Folder Structure
 
-| Method | Route              | Description                  | Body Params     |
-|--------|--------------------|------------------------------|-------------------------------------------------------------------------------|
-| GET    | `/`                | Get all products             | -                                                                              |
-| GET    | `/:id`             | Get a product by ID          | -                                                                              |
-| POST   | `/create`          | Create a new product         | `name: string`, 
-                                                               `price: decimal`,
-                                                               `brandId: int`, 
-                                                               `categories: string[]`|
-| PUT    | `/update/:id`      | Update a product by ID       | Same as POST    |
-| DELETE | `/delete/:id`      | Delete a product by ID       | -               |
+```
+src/
+├── config/           # Database config
+├── controllers/      # Logic for REST controllers
+├── graphql/          # GraphQL schema and resolvers
+├── middlewares/      # Custom middlewares (e.g. auth, validation)
+├── models/           # Sequelize models
+├── routes/           # Express routes (brands, categories, products)
+├── tests/            # Jest + Supertest test cases
+├── index.js          # Express app export
+└── server.js         # Server and Apollo Server setup
+```
 
 ---
 
-## ✅ Validations
+## 📌 Setup
 
-The API uses `express-validator` and a custom middleware `handleErrorValidation` to validate request parameters and bodies. If validation errors occur, a `400` response with details will be returned.
+### 1. Install dependencies
 
-**Example validation error**:
+```bash
+npm install
+```
+
+### 2. Create a `.env` file
+
+```env
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+DB_HOST=localhost
+JWT_SECRET=your_jwt_secret
+```
+
+### 3. Start the server
+
+```bash
+npm start
+```
+
+### 4. Run tests
+
+```bash
+npm test
+```
+
+---
+
+## 🧪 API Endpoints (REST)
+
+### 🔹 Brands (`/brands`)
+
+| Method | Route            | Description          | Body Parameters       |
+|--------|------------------|----------------------|------------------------|
+| GET    | `/`              | Get all brands       | -                      |
+| GET    | `/:id`           | Get a brand by ID    | -                      |
+| POST   | `/create`        | Create a new brand   | `{ "name": "string" }` |
+| PUT    | `/update/:id`    | Update a brand       | `{ "name": "string" }` |
+| DELETE | `/delete/:id`    | Delete a brand       | -                      |
+
+---
+
+### 🔹 Categories (`/categories`)
+
+| Method | Route            | Description              | Body Parameters       |
+|--------|------------------|--------------------------|------------------------|
+| GET    | `/`              | Get all categories       | -                      |
+| GET    | `/:id`           | Get a category by ID     | -                      |
+| POST   | `/create`        | Create a new category    | `{ "name": "string" }` |
+| PUT    | `/update/:id`    | Update a category        | `{ "name": "string" }` |
+| DELETE | `/delete/:id`    | Delete a category        | -                      |
+
+---
+
+### 🔹 Products (`/products`)
+
+| Method | Route            | Description            | Body Parameters                                               |
+|--------|------------------|------------------------|----------------------------------------------------------------|
+| GET    | `/`              | Get all products       | -                                                              |
+| GET    | `/:id`           | Get a product by ID    | -                                                              |
+| POST   | `/create`        | Create a new product   | `name`, `price`, `brandId`, `categories: string[]`             |
+| PUT    | `/update/:id`    | Update a product       | Same as POST                                                   |
+| DELETE | `/delete/:id`    | Delete a product       | -                                                              |
+
+---
+
+## 🧠 GraphQL Support
+
+You can also interact with the API using GraphQL via:
+
+```
+POST /graphql
+```
+
+### Example Queries
+
+#### 🔍 Get all products
+```graphql
+query {
+  products {
+    id
+    name
+    description
+    price
+    brand {
+      name
+    }
+    categories {
+      name
+    }
+  }
+}
+```
+
+#### ✏️ Create a product
+```graphql
+mutation CreateProduct($input: ProductInput) {
+  createProduct(input: $input) {
+    id
+    name
+    price
+  }
+}
+```
+
+**Variables:**
+```json
+{
+  "input": {
+    "name": "Sample Product",
+    "description": "Created via GraphQL",
+    "price": 99.99,
+    "brandId": 1,
+    "categoriesIds": [1]
+  }
+}
+```
+
+---
+
+## ✅ Validation & Errors
+
+All routes include validation using `express-validator`. Invalid inputs will return structured error responses like:
+
 ```json
 {
   "errors": [
@@ -77,18 +178,27 @@ The API uses `express-validator` and a custom middleware `handleErrorValidation`
 
 ---
 
-## 🌐 Headers and Format
+## 🧪 Testing
 
-- All responses are in **JSON** format.
-- For POST/PUT requests, ensure to include:
-  ```
-  Content-Type: application/json
-  ```
+The API includes integration tests using **Jest** and **Supertest**.
+
+```bash
+npm test
+```
+
+Test files are located in:
+
+```
+src/tests/
+```
 
 ---
 
-## 📌 Technical Notes
+## 📫 Contact
 
-- Routes are organized by entity in separate files.
-- Some category routes should be corrected (see notes above).
-- Database connection is handled via Sequelize.
+👨‍💻 **Author**  
+Matías Sebastián Benítez  
+📧 [matias.benitez.2203@gmail.com](mailto:matias.benitez.2203@gmail.com)  
+🔗 [https://github.com/matiassbenitez](https://github.com/matiassbenitez)
+
+---
